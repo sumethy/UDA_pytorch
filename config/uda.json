@@ -19,9 +19,9 @@
 
     "data_parallel": true,
     "need_prepro": false,
-    "sup_data_dir": "data/imdb_sup_train.txt",
-    "unsup_data_dir": "data/imdb_unsup_train.txt",
-    "eval_data_dir": "data/imdb_sup_test.txt",
+    "sup_data_dir": "data_new/imdb_sup_train_new.txt",
+    "unsup_data_dir": "data_new/imdb_unsup_train_new.txt",
+    "eval_data_dir": "data_new/imdb_sup_test_new.txt",
 
     "model_file":null,
     "pretrain_file":"BERT_Base_Uncased/bert_model.ckpt",
@@ -30,7 +30,7 @@
 
     "save_steps": 100,
     "check_steps": 250,
-    "results_dir": "results",
+    "results_dir": "results_new",
 
     "is_position": false
 }

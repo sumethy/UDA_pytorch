@@ -58,7 +58,7 @@ class Trainer(object):
             logger = SummaryWriter(log_dir=os.path.join(self.cfg.results_dir, 'logs'))
 
         self.model.train()
-        self.load(model_file, pretrain_file)    # between model_file and pretrain_file, only one model will be loaded
+        # self.load(model_file, pretrain_file)    # between model_file and pretrain_file, only one model will be loaded
         model = self.model.to(self.device)
         if self.cfg.data_parallel:                       # Parallel GPU mode
             model = nn.DataParallel(model)

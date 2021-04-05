@@ -24,6 +24,12 @@ from load_data import load_data
 from utils.utils import set_seeds, get_device, _get_device, torch_device_one
 from utils import optim, configuration
 
+from transformers import BertForSequenceClassification, BertTokenizer
+from transformers import RobertaForSequenceClassification, RobertaTokenizer
+
+# model = BertForSequenceClassification.from_pretrained("/home/users/v-sumeth/AIS/UDA_pytorch/pretrained_models/bert")
+
+model = RobertaForSequenceClassification.from_pretrained("/home/users/v-sumeth/AIS/UDA_pytorch/pretrained_models/roberta")
 
 # TSA
 def get_tsa_thresh(schedule, global_step, num_train_steps, start, end):
@@ -53,11 +59,11 @@ def main(cfg, model_cfg):
         data_iter = [data.sup_data_iter(), data.unsup_data_iter()] if cfg.mode=='train' \
             else [data.sup_data_iter(), data.unsup_data_iter(), data.eval_data_iter()]  # train_eval
     else:
-        data_iter = [data.sup_data_iter()]
+        data_iter = [data.sup_data_iter(), data.eval_data_iter()]
     sup_criterion = nn.CrossEntropyLoss(reduction='none')
     
     # Load Model
-    model = models.Classifier(model_cfg, len(data.TaskDataset.labels))
+    # model = models.Classifier(model_cfg, len(data.TaskDataset.labels))
 
     # Create trainer
     trainer = train.Trainer(cfg, model, data_iter, optim.optim4GPU(cfg, model), get_device())
@@ -78,7 +84,8 @@ def main(cfg, model_cfg):
             input_mask = torch.cat((input_mask, aug_input_mask), dim=0)
             
         # logits
-        logits = model(input_ids, segment_ids, input_mask)
+        # logits = model(input_ids, segment_ids, input_mask).logits
+        logits = model(input_ids, input_mask, segment_ids).logits # the signature of HF's forward is different from this repo's models.Classifier
 
         # sup loss
         sup_size = label_ids.shape[0]            
@@ -96,7 +103,8 @@ def main(cfg, model_cfg):
         if unsup_batch:
             # ori
             with torch.no_grad():
-                ori_logits = model(ori_input_ids, ori_segment_ids, ori_input_mask)
+                # ori_logits = model(ori_input_ids, ori_segment_ids, ori_input_mask).logits
+                ori_logits = model(ori_input_ids, ori_input_mask, ori_segment_ids).logits
                 ori_prob   = F.softmax(ori_logits, dim=-1)    # KLdiv target
                 # ori_log_prob = F.log_softmax(ori_logits, dim=-1)
 
@@ -136,7 +144,8 @@ def main(cfg, model_cfg):
     def get_acc(model, batch):
         # input_ids, segment_ids, input_mask, label_id, sentence = batch
         input_ids, segment_ids, input_mask, label_id = batch
-        logits = model(input_ids, segment_ids, input_mask)
+        # logits = model(input_ids, segment_ids, input_mask).logits
+        logits = model(input_ids, input_mask, segment_ids).logits
         _, label_pred = logits.max(1)
 
         result = (label_pred == label_id).float()
